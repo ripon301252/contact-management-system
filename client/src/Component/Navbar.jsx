@@ -1,17 +1,17 @@
 import React, { useState } from "react";
 import { LuNotebookTabs } from "react-icons/lu";
 
-const Navbar = () => {
+const Navbar = ({ page, setPage }) => {
   const [open, setOpen] = useState(false);
-  const btns = ["Home", "Add Contact", "Contact List"];
+  const btns = ["Home", "Add Contact", "All Contact"];
 
   const handleLog = () => {
     setOpen(!open);
   };
   return (
-    <div className="bg-gray-800 py-3 px-5">
-      <nav className="flex justify-between items-center">
-        <div className="flex gap-1 items-center bg-cyan-800/20 p-2 rounded-sm cursor-pointer">
+    <div className="bg-gray-800 py-3 px-16 sticky top-0 z-50">
+      <nav className="flex justify-between items-center max-w-7xl mx-auto">
+        <div onClick={() => setPage("Home")} className="flex gap-1 items-center bg-cyan-800/20 p-2 rounded-sm cursor-pointer">
           <div>
             <LuNotebookTabs className="text-4xl text-cyan-400" />
           </div>
@@ -24,8 +24,15 @@ const Navbar = () => {
           </h2>
         </div>
         <div className="flex items-center gap-3">
+        
           {btns.map((btn, i) => (
-            <div key={i} className="bg-cyan-600/50 hover:bg-cyan-500/50 py-1 px-4 rounded-lg cursor-pointer">
+            <div
+              key={i}
+              onClick={() => setPage(btn)}
+              className={`py-1 px-4 rounded-lg cursor-pointer font-semibold ${
+                page === btn ? "bg-cyan-800/50" : ""
+              }`}
+            >
               {btn}
             </div>
           ))}

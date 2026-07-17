@@ -6,13 +6,14 @@ const AllContact = () => {
   useEffect(() => {
     fetch("/contacts")
       .then((res) => res.json())
-      .then((data) => setContacts(data))
+      .then((api) => setContacts(api))
       .catch((err) => console.error(err));
   }, []);
 
   return (
-    <div>
-      <h2>All Contacts</h2>
+    <div className="max-w-7xl mx-auto px-7">
+      <h1 className="text-3xl font-bold text-cyan-600/70">All Contacts</h1>
+      <h2 className="text-cyan-500/50">Total Contacts : {contacts.length}</h2>
       <div className="overflow-x-auto">
         <table className="table">
           {/* head */}
@@ -52,7 +53,10 @@ const AllContact = () => {
                 </td>
                 <td>{c.phone}</td>
                 <th>
-                  <button className="btn btn-ghost btn-xs">details</button>
+                  <button className="btn btn-xs">View</button>
+                  <button className="btn btn-xs mx-2">Add</button>
+                  <button className="btn btn-xs mr-2">Edit</button>
+                  <button className="btn btn-xs">Delete</button>
                 </th>
               </tr>
             ))}

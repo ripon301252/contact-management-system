@@ -40,7 +40,7 @@ const SendContact = () => {
 };
 
   return (
-    <div>
+    <div className="max-w-7xl mx-auto px-7 min-h-screen">
       <h2>Add Contact</h2>
 
       <form onSubmit={handleSubmit}>
