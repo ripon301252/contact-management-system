@@ -7,6 +7,41 @@ import Swal from "sweetalert2";
 
 const AllContact = ({ contacts, setContacts, setPage }) => {
   const [selectedContact, setSelectedContact] = useState(null);
+  const [editData, setEditData] = useState({});
+
+  const handleUpdate = (e) => {
+    e.preventDefault();
+    fetch(`/contacts/${selectedContact._id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(editData),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        // UI update
+        setContacts((prev) =>
+          prev.map((c) => (c._id === selectedContact._id ? data : c)),
+        );
+
+        document.getElementById("edit_contact").closest();
+      });
+  };
+
+  const handleEdit = (id) => {
+    const contact = contacts.find((c) => c._id === id);
+    setSelectedContact(contact);
+
+    document.getElementById("edit_contact").showModal();
+  };
+
+  const handleEditChange = (e) => {
+    setEditData({
+      ...editData,
+      [e.target.name]: e.target.value,
+    });
+  };
 
   const handleDelete = (id) => {
     Swal.fire({
@@ -104,7 +139,7 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
                     >
                       <button
                         onClick={() => handleViewDetails(c._id)}
-                        className="btn btn-outline btn-square text-blue-500 hover:bg-blue-500 hover:text-black"
+                        className="btn btn-outline btn-square text-cyan-500 hover:bg-cyan-500 hover:text-black"
                       >
                         <IoEyeOffSharp className="text-lg" />
                       </button>
@@ -114,6 +149,7 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
                       data-tip="Edit contact"
                     >
                       <button
+                        onClick={() => handleEdit(c._id)}
                         className="btn btn-outline btn-square text-blue-500 hover:bg-blue-500 hover:text-black"
                         title="Edit Contact"
                       >
@@ -152,7 +188,7 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
         </table>
       </div>
 
-      {/* Modal */}
+      {/* Modal View-Details*/}
       <dialog id="view_modal" className="modal modal-bottom sm:modal-middle">
         <div className="modal-box bg-gray-800 text-white">
           <h3 className="font-bold text-3xl text-center text-cyan-400 mb-3">
@@ -195,8 +231,83 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
 
           <div className="modal-action">
             <form method="dialog">
-              {/* if there is a button in form, it will close the modal */}
-              <button className="btn bg-cyan-600/50 hover:bg-cyan-500/50">Close</button>
+              <button className="btn bg-cyan-600/50 hover:bg-cyan-500/50">
+                Close
+              </button>
+            </form>
+          </div>
+        </div>
+      </dialog>
+
+      {/* Modal update */}
+      <button
+        className="btn"
+        onClick={() => document.getElementById("my_modal_5").showModal()}
+      >
+        open modal
+      </button>
+      <dialog id="edit_contact" className="modal modal-bottom sm:modal-middle">
+        <div className="modal-box bg-gray-800 text-white">
+          <h3 className="font-bold text-cyan-500/50 text-3xl mb-3">
+            Edit Contact
+          </h3>
+
+          {editData && (
+            <form onSubmit={handleUpdate} className="space-y-2">
+              <input
+                name="name"
+                type="text"
+                value={editData.name || ""}
+                onChange={handleEditChange}
+                placeholder="Name"
+                className="input input-bordered w-full bg-gray-900"
+              />
+
+              <input
+                name="email"
+                type="text"
+                value={editData.email || ""}
+                onChange={handleEditChange}
+                placeholder="Email"
+                className="input input-bordered w-full bg-gray-900"
+              />
+
+              <input
+                name="phone"
+                type="number"
+                value={editData.phone || ""}
+                onChange={handleEditChange}
+                placeholder="phone"
+                className="input input-bordered w-full bg-gray-900"
+              />
+
+              <input
+                name="address"
+                type="text"
+                value={editData.address || ""}
+                onChange={handleEditChange}
+                placeholder="Address"
+                className="input input-bordered w-full bg-gray-900"
+              />
+
+              <textarea
+                name="message"
+                type="text"
+                cols="10"
+                rows="5"
+                value={editData.message || ""}
+                onChange={handleEditChange}
+                placeholder="Edit Your Message"
+                className="textarea textarea-bordered w-full bg-gray-900 border-gray-700 focus:border-cyan-400"
+              />
+
+              <button className="btn bg-cyan-600 w-full mt-3">Update</button>
+            </form>
+          )}
+
+          <div className="modal-action">
+            <form method="dialog">
+              <button className="w-full btn bg-cyan-500/50">Close</button>
             </form>
           </div>
         </div>
