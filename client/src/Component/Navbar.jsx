@@ -30,7 +30,7 @@ const Navbar = ({ page, setPage }) => {
               key={i}
               onClick={() => setPage(btn)}
               className={`py-1 px-4 rounded-lg cursor-pointer font-semibold ${
-                page === btn ? "bg-cyan-800/50" : ""
+                page === btn ? "bg-cyan-800/50" : "text-cyan-500/70"
               }`}
             >
               {btn}

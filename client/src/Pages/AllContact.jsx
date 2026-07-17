@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect} from "react";
 
-const AllContact = () => {
-  const [contacts, setContacts] = useState([]);
+const AllContact = ({contacts, setContacts}) => {
+  
 
   useEffect(() => {
     fetch("/contacts")
@@ -11,8 +11,8 @@ const AllContact = () => {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto px-7">
-      <h1 className="text-3xl font-bold text-cyan-600/70">All Contacts</h1>
+    <div className="max-w-7xl mx-auto px-7 py-20">
+      <h1 className="text-4xl font-bold text-cyan-600/70">All Contacts</h1>
       <h2 className="text-cyan-500/50">Total Contacts : {contacts.length}</h2>
       <div className="overflow-x-auto">
         <table className="table">

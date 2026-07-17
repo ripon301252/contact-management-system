@@ -1,17 +1,12 @@
 import React from 'react';
-// import SendContact from './SendContact';
-// import AllContact from './AllContact';
+import System from './System';
 
-
-const Home = () => {
+const Home = ({contacts, setPage }) => {
     return (
         <div>
-            {/* <SendContact></SendContact> */}
-            {/* <AllContact></AllContact> */}
+            <System contacts={contacts} setPage={setPage}></System>
         </div>
     );
 };
 
 export default Home;
-
-
