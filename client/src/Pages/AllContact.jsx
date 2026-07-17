@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { IoEyeOffSharp, IoTrashOutline } from "react-icons/io5";
+import { IoEye, IoTrashOutline } from "react-icons/io5";
 import { FaRegEdit } from "react-icons/fa";
 import { MdAddToDrive } from "react-icons/md";
 import Swal from "sweetalert2";
@@ -141,7 +141,7 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
                         onClick={() => handleViewDetails(c._id)}
                         className="btn btn-outline btn-square text-cyan-500 hover:bg-cyan-500 hover:text-black"
                       >
-                        <IoEyeOffSharp className="text-lg" />
+                        <IoEye className="text-lg" />
                       </button>
                     </div>
                     <div
@@ -240,12 +240,6 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
       </dialog>
 
       {/* Modal update */}
-      <button
-        className="btn"
-        onClick={() => document.getElementById("my_modal_5").showModal()}
-      >
-        open modal
-      </button>
       <dialog id="edit_contact" className="modal modal-bottom sm:modal-middle">
         <div className="modal-box bg-gray-800 text-white">
           <h3 className="font-bold text-cyan-500/50 text-3xl mb-3">
