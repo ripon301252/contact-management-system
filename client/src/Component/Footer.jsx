@@ -28,9 +28,9 @@ const Footer = () => {
 
           {/* Social Icons */}
           <div className="flex gap-4 text-xl">
-            <FaFacebook className="hover:text-cyan-400 cursor-pointer" />
-            <FaGithub className="hover:text-cyan-400 cursor-pointer" />
-            <FaLinkedin className="hover:text-cyan-400 cursor-pointer" />
+            <a href="https://www.facebook.com/profile.php?id=100089627922381" target="_blank"><FaFacebook className="hover:text-cyan-400 cursor-pointer" /></a>
+            <a href="https://github.com/ripon301252" target="_blank"><FaGithub className="hover:text-cyan-400 cursor-pointer" /></a> 
+            <a href="https://www.linkedin.com/in/mahfuzur-rahman-280471392/" target="_blank"><FaLinkedin className="hover:text-cyan-400 cursor-pointer" /></a>
           </div>
 
         </div>
