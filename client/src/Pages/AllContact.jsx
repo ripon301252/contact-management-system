@@ -3,14 +3,41 @@ import { IoEye, IoTrashOutline } from "react-icons/io5";
 import { FaRegEdit } from "react-icons/fa";
 import { MdAddToDrive } from "react-icons/md";
 import Swal from "sweetalert2";
-// import { Eye } from 'lucide-react/lu';
 
 const AllContact = ({ contacts, setContacts, setPage }) => {
   const [selectedContact, setSelectedContact] = useState(null);
   const [editData, setEditData] = useState({});
 
+  const getChangedFields = () => {
+    const changed = [];
+
+    for (let key in editData) {
+      if (editData[key] !== selectedContact[key]) {
+        changed.push(key);
+      }
+    }
+
+    return changed;
+  };
+
   const handleUpdate = (e) => {
     e.preventDefault();
+
+    const changedFields = getChangedFields();
+
+    // ❌ No change hole API call bondho
+    if (changedFields.length === 0) {
+      Swal.fire({
+        position: "top-end",
+        icon: "info",
+        title: "No changes",
+        showConfirmButton: false,
+        timer: 2200,
+        text: "You didn't update anything ",
+      });
+      return;
+    }
+
     fetch(`/contacts/${selectedContact._id}`, {
       method: "PUT",
       headers: {
@@ -20,18 +47,46 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
     })
       .then((res) => res.json())
       .then((data) => {
+        // Swal.fire({
+        //   icon: "success",
+        //   title: "Update Successful",
+        //   text:
+        //     changedFields.length === 1
+        //       ? `${changedFields[0]} updated successfully`
+        //       : `${changedFields.join(", ")} updated successfully`,
+        // });
+        const message =
+          changedFields.length === 1
+            ? `<span style="color:#06b6d4; font-weight:600">${changedFields[0]}</span> updated successfully`
+            : `<span style="color:#06b6d4; font-weight:600">${changedFields.join(", ")}</span> updated successfully`;
+
+        Swal.fire({
+          position: "top-end",
+          icon: "success",
+          html: message, // 🔥 use html for color
+        });
+
         // UI update
         setContacts((prev) =>
           prev.map((c) => (c._id === selectedContact._id ? data : c)),
         );
 
-        document.getElementById("edit_contact").closest();
+        document.getElementById("edit_contact").close();
+
+        // Reset form after update
+        setEditData({});
+        setSelectedContact(null);
+      })
+      .catch((err) => {
+        console.error(err);
+        Swal.fire("Error", "Update failed", "error");
       });
   };
 
   const handleEdit = (id) => {
     const contact = contacts.find((c) => c._id === id);
     setSelectedContact(contact);
+    setEditData(contact);
 
     document.getElementById("edit_contact").showModal();
   };
@@ -65,7 +120,7 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
                 title: "Deleted!",
                 text: "Contact has been deleted.",
                 icon: "success",
-                timer: 1500,
+                timer: 2200,
                 showConfirmButton: false,
               });
             } else {
@@ -107,7 +162,8 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
               <th>Name</th>
               <th>Email</th>
               <th>Phone</th>
-              <th>Create At</th>
+              <th>Create Time</th>
+              <th>Update Time</th>
               <th>Actin</th>
             </tr>
           </thead>
@@ -131,6 +187,7 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
                 <td>{c.email}</td>
                 <td>{c.phone}</td>
                 <td>{new Date(c.createdAt).toLocaleString()}</td>
+                <td>{new Date(c.updatedAt).toLocaleString()} </td>
                 <td>
                   <div className="flex justify-start items-center gap-3 whitespace-nowrap">
                     <div

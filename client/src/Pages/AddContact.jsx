@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Swal from "sweetalert2";
 
 const AddContact = ({ setContacts }) => {
   const [formData, setFormData] = useState({
@@ -29,7 +30,14 @@ const AddContact = ({ setContacts }) => {
     })
       .then((res) => res.json())
       .then((data) => {
-        alert("Saved ✅");
+        // alert("Saved ✅");
+        Swal.fire({
+          position: "center",
+          icon: "success",
+          title: "Your contact has been saved",
+          showConfirmButton: false,
+          timer: 2200,
+        });
         setContacts((prev) => [...prev, data]);
 
         setFormData({
@@ -45,9 +53,7 @@ const AddContact = ({ setContacts }) => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4">
-      
       <div className="grid md:grid-cols-2 gap-6 w-full max-w-6xl">
-        
         {/* 🖼️ Image Side */}
         <div className="hidden md:flex items-center justify-center">
           <img
@@ -65,7 +71,6 @@ const AddContact = ({ setContacts }) => {
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-3 mt-4">
-              
               <input
                 name="name"
                 value={formData.name}
