@@ -13,16 +13,11 @@ app.get("/", (req, res) => {
   res.send("Contact Management Server in Running");
 });
 
-// let contacts = [
-//     {name: "Mahfuz", email: "mahfuz@gmail.com", address: "Dhaka", Phone: "01626607121"},
-//     {name: "Ripon", email: "ripon@gmail.com", address: "Barisal", Phone: "01726607122"},
-//     {name: "Rumon", email: "rupon@gmail.com", address: "Gazipur", Phone: "01826607123"}
-// ]
-
 // DB Connection
-mongoose.connect(process.env.MONGO_URI)
+mongoose
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.log(err));
+  .catch((err) => console.log(err));
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
@@ -72,10 +67,41 @@ app.get("/contacts", async (req, res) => {
   try {
     const contacts = await Contact.find();
     res.send(contacts);
-  } catch (err) {
+  } 
+  catch (err) {
     res.status(500).send({ message: err.message });
   }
 });
+
+// app.get("/contacts", async (req, res) => {
+//   try {
+//     const search = req.query.search || "";
+//     const page = parseInt(req.query.page) || 1;
+//     const limit = parseInt(req.query.limit) || 5;
+
+//     const query = {
+//       name: { $regex: search, $options: "i" }, // 🔍 search
+//     };
+
+//     const total = await Contact.countDocuments(query);
+
+//     const contacts = await Contact.find(query)
+//       .skip((page - 1) * limit) // ⏭️ pagination
+//       .limit(limit)
+//       .sort({ createdAt: -1 });
+
+//     res.send({
+//       contacts,
+//       total,
+//       page,
+//       totalPages: Math.ceil(total / limit),
+//     });
+//   } catch (err) {
+//     res.status(500).send({ message: err.message });
+//   }
+// });
+
+
 
 // single GET
 app.get("/contacts/:id", async (req, res) => {

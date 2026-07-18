@@ -1,12 +1,46 @@
 import React, { useEffect, useState } from "react";
-import { IoEye, IoTrashOutline } from "react-icons/io5";
+import { IoEye, IoSearch, IoTrashOutline } from "react-icons/io5";
 import { FaRegEdit } from "react-icons/fa";
 import { MdAddToDrive } from "react-icons/md";
 import Swal from "sweetalert2";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const AllContact = ({ contacts, setContacts, setPage }) => {
   const [selectedContact, setSelectedContact] = useState(null);
   const [editData, setEditData] = useState({});
+  const [search, setSearch] = useState("");
+
+  const filteredContacts = contacts.filter(
+    (contact) =>
+      contact.name.toLowerCase().includes(search.toLowerCase()) ||
+      contact.email.toLowerCase().includes(search.toLowerCase()) ||
+      contact.phone.includes(search),
+  );
+
+  // Pagination logic
+  const [currentPage, setCurrentPage] = useState(1);
+  const contactsPerPage = 5;
+
+  const indexOfLast = currentPage * contactsPerPage;
+  const indexOfFirst = indexOfLast - contactsPerPage;
+
+  const currentContacts = filteredContacts.slice(indexOfFirst, indexOfLast);
+
+  // Total page
+  const totalPages = Math.ceil(filteredContacts.length / contactsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
+  // All GET
+  useEffect(() => {
+    fetch("/contacts")
+      .then((res) => res.json())
+      .then((api) => setContacts(api))
+      .catch((err) => console.error(err));
+  }, [setContacts]);
 
   const getChangedFields = () => {
     const changed = [];
@@ -25,7 +59,7 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
 
     const changedFields = getChangedFields();
 
-    // ❌ No change hole API call bondho
+    //  No change hole API call bondho
     if (changedFields.length === 0) {
       Swal.fire({
         position: "top-end",
@@ -38,6 +72,7 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
       return;
     }
 
+    // PUT
     fetch(`/contacts/${selectedContact._id}`, {
       method: "PUT",
       headers: {
@@ -63,7 +98,7 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
         Swal.fire({
           position: "top-end",
           icon: "success",
-          html: message, // 🔥 use html for color
+          html: message, // use html for color
         });
 
         // UI update
@@ -142,17 +177,66 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
     document.getElementById("view_modal").showModal();
   };
 
-  useEffect(() => {
-    fetch("/contacts")
-      .then((res) => res.json())
-      .then((api) => setContacts(api))
-      .catch((err) => console.error(err));
-  }, [setContacts]);
+  // Export PDF
+  const handlePDF = () => {
+    const doc = new jsPDF("landscape");
+    doc.text("Contact Management System - All Contact Report", 14, 10);
+
+    const tableColumn = [
+      "Name",
+      "Email",
+      "Phone",
+      "Address",
+      "Create-Time",
+      "Update-Time",
+    ];
+    const tableRows = contacts.map((contact) => [
+      contact.name,
+      contact.email,
+      contact.phone,
+      contact.address,
+      contact.createdAt,
+      contact.updatedAt,
+      new Date(contact.createdAt).toLocaleDateString(),
+    ]);
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 20,
+    });
+    doc.save("all_contact.pdf");
+  };
 
   return (
-    <div className="max-w-7xl mx-auto px-7 py-16">
+    <div className="max-w-7xl mx-auto px-7 py-10">
       <h1 className="text-4xl font-bold text-cyan-600/70">All Contacts</h1>
       <h2 className="text-cyan-500/50">Total Contacts : {contacts.length}</h2>
+
+      <div className="flex gap-3 py-3">
+        <div>
+          <div className="lg:w-[500.5px] flex items-center input input-bordered px-3">
+            <IoSearch className="text-cyan-400/50 text-lg " />
+
+            <input
+              type="text"
+              placeholder="Search assets..."
+              className="w-full outline-none bg-transparent"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        </div>
+        <div>
+          <button
+            onClick={handlePDF}
+            className="btn btn-outline btn-success font-bold px-5"
+          >
+            PDF
+          </button>
+        </div>
+      </div>
+
       <div className="overflow-x-auto">
         <table className="table">
           {/* head */}
@@ -168,7 +252,7 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
             </tr>
           </thead>
           <tbody>
-            {contacts.map((c, i) => (
+            {currentContacts.map((c, i) => (
               <tr key={c._id}>
                 <th>{i + 1}</th>
                 <td>
@@ -243,6 +327,21 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
             ))}
           </tbody>
         </table>
+
+        {/* pagination */}
+        <div className="flex gap-2 mt-4">
+          {[...Array(totalPages)].map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentPage(i + 1)}
+              className={`btn btn-sm ${
+                currentPage === i + 1 ? "btn-primary" : ""
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Modal View-Details*/}
