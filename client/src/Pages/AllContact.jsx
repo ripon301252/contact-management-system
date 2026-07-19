@@ -5,6 +5,7 @@ import { MdAddToDrive } from "react-icons/md";
 import Swal from "sweetalert2";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { HiOutlineDocumentArrowDown } from "react-icons/hi2";
 
 const AllContact = ({ contacts, setContacts, setPage }) => {
   const [selectedContact, setSelectedContact] = useState(null);
@@ -118,6 +119,13 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
       });
   };
 
+  const handleEditChange = (e) => {
+    setEditData({
+      ...editData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
   const handleEdit = (id) => {
     const contact = contacts.find((c) => c._id === id);
     setSelectedContact(contact);
@@ -126,13 +134,7 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
     document.getElementById("edit_contact").showModal();
   };
 
-  const handleEditChange = (e) => {
-    setEditData({
-      ...editData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
+  // Delete
   const handleDelete = (id) => {
     Swal.fire({
       title: "Are you sure?",
@@ -195,9 +197,8 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
       contact.email,
       contact.phone,
       contact.address,
-      contact.createdAt,
-      contact.updatedAt,
-      new Date(contact.createdAt).toLocaleDateString(),
+      new Date(contact.createdAt).toLocaleString(),
+      new Date(contact.updatedAt).toLocaleString(),
     ]);
 
     autoTable(doc, {
@@ -210,255 +211,392 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
 
   return (
     <div className="max-w-7xl mx-auto px-7 py-10">
-      <h1 className="text-4xl font-bold text-cyan-600/70">All Contacts</h1>
-      <h2 className="text-cyan-500/50">Total Contacts : {contacts.length}</h2>
+      <div className="relative mb-6">
+        {/* 🔥 Background Glow */}
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 via-blue-500/10 to-purple-500/20 blur-2xl rounded-xl pointer-events-none"></div>
 
-      <div className="flex gap-3 py-3">
-        <div>
-          <div className="lg:w-[500.5px] flex items-center input input-bordered px-3">
-            <IoSearch className="text-cyan-400/50 text-lg " />
+        {/* 💎 Glass Container */}
+        <div
+          className="relative backdrop-blur-xl bg-white/5 border border-white/10 
+  rounded-xl px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-2"
+        >
+          {/* 🧠 Title */}
+          <h1
+            className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 
+    bg-clip-text text-transparent"
+          >
+            All Contacts
+          </h1>
+
+          {/* 📊 Total */}
+          <h2 className="text-sm md:text-base text-gray-300">
+            Total Contacts:{" "}
+            <span className="text-cyan-400 font-semibold">
+              {contacts.length}
+            </span>
+          </h2>
+        </div>
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-4 py-4">
+        {/* 🔍 Search Box */}
+        <div className="flex-1 relative">
+          {/* Glow */}
+          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 via-blue-500/10 to-purple-500/20 blur-xl rounded-xl"></div>
+
+          {/* Glass */}
+          <div
+            className="relative flex items-center gap-3 px-4 py-3 
+    backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl"
+          >
+            <IoSearch className="text-cyan-400 text-lg" />
 
             <input
               type="text"
-              placeholder="Search assets..."
-              className="w-full outline-none bg-transparent"
+              placeholder="Search contacts..."
+              className="w-full bg-transparent outline-none text-white placeholder-gray-400"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
         </div>
-        <div>
+
+        {/* 📄 PDF Button */}
+        <div className="relative">
+          {/* Glow */}
+          <div className="absolute inset-0 bg-green-500/20 blur-xl rounded-xl"></div>
+
           <button
             onClick={handlePDF}
-            className="btn btn-outline btn-success font-bold px-5"
+            className="relative px-6 py-3 rounded-xl font-semibold text-white
+      bg-gradient-to-r from-green-500 to-emerald-500
+      hover:scale-105 active:scale-95 transition shadow-lg flex items-center gap-2 cursor-pointer"
           >
-            PDF
+            <HiOutlineDocumentArrowDown /> Export PDF
           </button>
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="table">
-          {/* head */}
-          <thead>
-            <tr>
-              <th>No.</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Phone</th>
-              <th>Create Time</th>
-              <th>Update Time</th>
-              <th>Actin</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentContacts.map((c, i) => (
-              <tr key={c._id}>
-                <th>{i + 1}</th>
-                <td>
-                  <div className="flex items-center gap-3">
-                    <div className="avatar">
-                      <div className="mask mask-squircle h-12 w-12">
-                        <img src={c.image} alt={c.image} />
+      <div className="overflow-x-auto rounded-2xl relative">
+        {/* 🔥 Background Glow */}
+        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-purple-500/10 blur-2xl pointer-events-none"></div>
+
+        {/* 💎 Glass Layer */}
+        <div className="relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-4">
+          <table className="table text-white">
+            {/* 🧠 Head */}
+            <thead>
+              <tr className="text-gray-300 text-sm">
+                <th>No.</th>
+                <th>User</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Created</th>
+                <th>Updated</th>
+                <th className="text-center">Action</th>
+              </tr>
+            </thead>
+
+            {/* 📋 Body */}
+            <tbody>
+              {currentContacts.map((c, i) => (
+                <tr
+                  key={c._id}
+                  className="hover:bg-white/5 transition duration-200"
+                >
+                  <th className="text-gray-400">{indexOfFirst + i + 1}</th>
+
+                  {/* 👤 User */}
+                  <td>
+                    <div className="flex items-center gap-3">
+                      <div className="avatar">
+                        <div className="h-12 w-12 rounded-xl border border-cyan-400/40">
+                          <img
+                            src={c.image || "https://i.ibb.co/2kR7b6d/user.png"}
+                            alt="user"
+                            className="object-cover"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <div className="font-semibold text-cyan-300">
+                          {c.name}
+                        </div>
+                        <div className="text-xs text-gray-400">{c.address}</div>
                       </div>
                     </div>
-                    <div>
-                      <div className="font-bold">{c.name}</div>
-                      <div className="text-sm opacity-50">{c.address}</div>
-                    </div>
-                  </div>
-                </td>
-                <td>{c.email}</td>
-                <td>{c.phone}</td>
-                <td>{new Date(c.createdAt).toLocaleString()}</td>
-                <td>{new Date(c.updatedAt).toLocaleString()} </td>
-                <td>
-                  <div className="flex justify-start items-center gap-3 whitespace-nowrap">
-                    <div
-                      className="relative overflow-visible tooltip tooltip-bottom"
-                      data-tip="View Details"
-                    >
+                  </td>
+
+                  {/* 📧 */}
+                  <td className="text-gray-300">{c.email}</td>
+
+                  {/* 📞 */}
+                  <td className="text-gray-300">{c.phone}</td>
+
+                  {/* 🕒 */}
+                  <td className="text-xs text-gray-400">
+                    {new Date(c.createdAt).toLocaleString()}
+                  </td>
+
+                  <td className="text-xs text-gray-400">
+                    {new Date(c.updatedAt).toLocaleString()}
+                  </td>
+
+                  {/* ⚡ Actions */}
+                  <td>
+                    <div className="flex justify-center items-center gap-2">
+                      {/* 👁 View */}
                       <button
                         onClick={() => handleViewDetails(c._id)}
-                        className="btn btn-outline btn-square text-cyan-500 hover:bg-cyan-500 hover:text-black"
+                        className="p-2 rounded-lg bg-cyan-500/10 hover:bg-cyan-500 
+                  hover:text-black transition"
+                        title="View"
                       >
-                        <IoEye className="text-lg" />
+                        <IoEye />
                       </button>
-                    </div>
-                    <div
-                      className="relative overflow-visible tooltip tooltip-bottom"
-                      data-tip="Edit contact"
-                    >
+
+                      {/* ✏️ Edit */}
                       <button
                         onClick={() => handleEdit(c._id)}
-                        className="btn btn-outline btn-square text-blue-500 hover:bg-blue-500 hover:text-black"
-                        title="Edit Contact"
+                        className="p-2 rounded-lg bg-blue-500/10 hover:bg-blue-500 
+                  hover:text-black transition"
+                        title="Edit"
                       >
-                        <FaRegEdit className="text-lg" />
+                        <FaRegEdit />
                       </button>
-                    </div>
-                    <div
-                      onClick={() => setPage("Add Contact")}
-                      className="relative overflow-visible tooltip tooltip-bottom"
-                      data-tip="Add Contact"
-                    >
+
+                      {/* ➕ Add */}
                       <button
-                        className="btn btn-outline btn-square text-green-500 hover:bg-green-500 hover:text-black"
-                        title="Add Contact"
+                        onClick={() => setPage("Add Contact")}
+                        className="p-2 rounded-lg bg-green-500/10 hover:bg-green-500 
+                  hover:text-black transition"
+                        title="Add"
                       >
-                        <MdAddToDrive className="text-lg" />
+                        <MdAddToDrive />
                       </button>
-                    </div>
-                    <div
-                      className="relative overflow-visible tooltip tooltip-bottom"
-                      data-tip="Delete"
-                    >
+
+                      {/* 🗑 Delete */}
                       <button
                         onClick={() => handleDelete(c._id)}
-                        className="btn btn-outline btn-square text-[#f87171] hover:bg-[#f87171] hover:text-black"
+                        className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500 
+                  hover:text-black transition"
                         title="Delete"
                       >
-                        <IoTrashOutline className="text-lg" />
+                        <IoTrashOutline />
                       </button>
                     </div>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-        {/* pagination */}
-        <div className="flex gap-2 mt-4">
-          {[...Array(totalPages)].map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrentPage(i + 1)}
-              className={`btn btn-sm ${
-                currentPage === i + 1 ? "btn-primary" : ""
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
+      {/* pagination */}
+      <div className="flex justify-center mt-8">
+        {/* 🔥 Glow */}
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/5 to-purple-500/10 blur-xl pointer-events-none"></div>
+
+        {/* 💎 Glass Container */}
+        <div
+          className="relative flex items-center gap-2 px-4 py-2 
+  backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl"
+        >
+          {[...Array(totalPages)].map((_, i) => {
+            const page = i + 1;
+
+            return (
+              <button
+                key={i}
+                onClick={() => setCurrentPage(page)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition
+          ${
+            currentPage === page
+              ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md"
+              : "text-gray-300 hover:bg-white/10 hover:text-white"
+          }`}
+              >
+                {page}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Modal View-Details*/}
       <dialog id="view_modal" className="modal modal-bottom sm:modal-middle">
-        <div className="modal-box bg-gray-800 text-white">
-          <h3 className="font-bold text-3xl text-center text-cyan-400 mb-3">
-            Contact Details
-          </h3>
+        <div className="modal-box relative overflow-hidden rounded-2xl p-0">
+          {/* 🔥 Background Glow */}
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 via-blue-500/10 to-purple-500/20 blur-2xl"></div>
 
-          {selectedContact && (
-            <div className="space-y-2">
-              <img
-                src={selectedContact.image}
-                alt="contact"
-                className="w-48 h-48 rounded-full mx-auto"
-              />
+          {/* 💎 Glass Layer */}
+          <div className="absolute inset-0 backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl"></div>
 
-              <p>
-                <span className="font-semibold">Name:</span>{" "}
-                {selectedContact.name}
-              </p>
-              <p>
-                <span className="font-semibold">Email:</span>{" "}
-                {selectedContact.email}
-              </p>
-              <p>
-                <span className="font-semibold">Phone:</span>{" "}
-                {selectedContact.phone}
-              </p>
-              <p>
-                <span className="font-semibold">Address:</span>{" "}
-                {selectedContact.address}
-              </p>
-              <p>
-                <span className="font-semibold">Message:</span>{" "}
-                {selectedContact.message}
-              </p>
-              <p className="text-sm text-gray-400">
-                Created: {new Date(selectedContact.createdAt).toLocaleString()}
-              </p>
+          {/* ✨ Content */}
+          <div className="relative z-10 p-6 text-white">
+            <h3 className="text-2xl font-bold text-center mb-5">
+              Contact <span className="text-cyan-400">Details</span>
+            </h3>
+
+            {selectedContact && (
+              <div className="text-center space-y-3">
+                {/* 🖼️ Profile Image */}
+                <div className="flex justify-center">
+                  <img
+                    src={
+                      selectedContact.image ||
+                      "https://i.ibb.co/2kR7b6d/user.png"
+                    }
+                    alt="contact"
+                    className="w-28 h-28 rounded-full border-4 border-cyan-400 shadow-lg object-cover"
+                  />
+                </div>
+
+                {/* 👤 Name */}
+                <h2 className="text-xl font-semibold text-cyan-300">
+                  {selectedContact.name}
+                </h2>
+
+                {/* 📋 Info Grid */}
+                <div className="grid grid-cols-1 gap-2 text-sm text-gray-300 mt-3">
+                  <p>
+                    <span className="text-gray-400">📧 Email:</span>{" "}
+                    {selectedContact.email}
+                  </p>
+                  <p>
+                    <span className="text-gray-400">📞 Phone:</span>{" "}
+                    {selectedContact.phone}
+                  </p>
+                  <p>
+                    <span className="text-gray-400">📍 Address:</span>{" "}
+                    {selectedContact.address}
+                  </p>
+
+                  {selectedContact.message && (
+                    <p>
+                      <span className="text-gray-400">💬 Message:</span>{" "}
+                      {selectedContact.message}
+                    </p>
+                  )}
+
+                  <p className="text-xs text-gray-500 mt-2">
+                    🕒 {new Date(selectedContact.createdAt).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* ❌ Close Button */}
+            <div className="modal-action justify-center mt-6">
+              <form method="dialog">
+                <button
+                  className="px-6 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 
+          hover:scale-105 active:scale-95 transition text-white font-semibold shadow-md"
+                >
+                  Close
+                </button>
+              </form>
             </div>
-          )}
-
-          <div className="modal-action">
-            <form method="dialog">
-              <button className="btn bg-cyan-600/50 hover:bg-cyan-500/50">
-                Close
-              </button>
-            </form>
           </div>
         </div>
       </dialog>
 
       {/* Modal update */}
       <dialog id="edit_contact" className="modal modal-bottom sm:modal-middle">
-        <div className="modal-box bg-gray-800 text-white">
-          <h3 className="font-bold text-cyan-500/50 text-3xl mb-3">
-            Edit Contact
-          </h3>
+        <div className="modal-box relative overflow-hidden rounded-2xl p-0">
+          {/* 🔥 Gradient Glow */}
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 via-blue-500/10 to-purple-500/20 blur-2xl"></div>
 
-          {editData && (
-            <form onSubmit={handleUpdate} className="space-y-2">
-              <input
-                name="name"
-                type="text"
-                value={editData.name || ""}
-                onChange={handleEditChange}
-                placeholder="Name"
-                className="input input-bordered w-full bg-gray-900"
-              />
+          {/* 💎 Glass Layer */}
+          <div className="absolute inset-0 backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl"></div>
 
-              <input
-                name="email"
-                type="text"
-                value={editData.email || ""}
-                onChange={handleEditChange}
-                placeholder="Email"
-                className="input input-bordered w-full bg-gray-900"
-              />
+          {/* ✨ Content */}
+          <div className="relative z-10 p-6 text-white">
+            <h3 className="text-2xl font-bold text-center mb-5">
+              Edit <span className="text-cyan-400">Contact</span>
+            </h3>
 
-              <input
-                name="phone"
-                type="number"
-                value={editData.phone || ""}
-                onChange={handleEditChange}
-                placeholder="phone"
-                className="input input-bordered w-full bg-gray-900"
-              />
+            {editData && (
+              <form onSubmit={handleUpdate} className="space-y-4">
+                {/* Name */}
+                <input
+                  name="name"
+                  type="text"
+                  value={editData.name || ""}
+                  onChange={handleEditChange}
+                  placeholder="Full Name"
+                  className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 
+            focus:outline-none focus:ring-2 focus:ring-cyan-400 transition"
+                />
 
-              <input
-                name="address"
-                type="text"
-                value={editData.address || ""}
-                onChange={handleEditChange}
-                placeholder="Address"
-                className="input input-bordered w-full bg-gray-900"
-              />
+                {/* Email */}
+                <input
+                  name="email"
+                  type="text"
+                  value={editData.email || ""}
+                  onChange={handleEditChange}
+                  placeholder="Email Address"
+                  className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 
+            focus:outline-none focus:ring-2 focus:ring-cyan-400 transition"
+                />
 
-              <textarea
-                name="message"
-                type="text"
-                cols="10"
-                rows="5"
-                value={editData.message || ""}
-                onChange={handleEditChange}
-                placeholder="Edit Your Message"
-                className="textarea textarea-bordered w-full bg-gray-900 border-gray-700 focus:border-cyan-400"
-              />
+                {/* Phone */}
+                <input
+                  name="phone"
+                  type="number"
+                  value={editData.phone || ""}
+                  onChange={handleEditChange}
+                  placeholder="Phone Number"
+                  className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 
+            focus:outline-none focus:ring-2 focus:ring-cyan-400 transition"
+                />
 
-              <button className="btn bg-cyan-600 w-full mt-3">Update</button>
-            </form>
-          )}
+                {/* Address */}
+                <input
+                  name="address"
+                  type="text"
+                  value={editData.address || ""}
+                  onChange={handleEditChange}
+                  placeholder="Address"
+                  className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 
+            focus:outline-none focus:ring-2 focus:ring-cyan-400 transition"
+                />
 
-          <div className="modal-action">
-            <form method="dialog">
-              <button className="w-full btn bg-cyan-500/50">Close</button>
-            </form>
+                {/* Message */}
+                <textarea
+                  name="message"
+                  rows="3"
+                  value={editData.message || ""}
+                  onChange={handleEditChange}
+                  placeholder="Edit your message..."
+                  className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 
+            focus:outline-none focus:ring-2 focus:ring-cyan-400 transition"
+                />
+
+                {/* Buttons */}
+                <div className="flex gap-3 mt-4">
+                  <button
+                    type="submit"
+                    className="flex-1 py-3 rounded-lg font-semibold text-white 
+              bg-gradient-to-r from-cyan-500 to-blue-500 
+              hover:scale-[1.03] active:scale-[0.97] transition shadow-lg"
+                  >
+                    Update 🚀
+                  </button>
+
+                  <form method="dialog" className="flex-1">
+                    <button
+                      type="submit"
+                      className="w-full py-3 rounded-lg font-semibold text-white 
+                bg-white/10 hover:bg-white/20 transition border border-white/10"
+                    >
+                      Cancel
+                    </button>
+                  </form>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       </dialog>
