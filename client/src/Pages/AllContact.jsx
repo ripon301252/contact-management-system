@@ -1,16 +1,39 @@
 import React, { useEffect, useState } from "react";
-import { IoEye, IoSearch, IoTrashOutline } from "react-icons/io5";
-import { FaRegEdit } from "react-icons/fa";
-import { MdAddToDrive } from "react-icons/md";
+import {
+  IoEye,
+  IoSearch,
+  IoTrashOutline,
+  IoLocationSharp,
+} from "react-icons/io5";
+import { FaRegEdit, FaPhoneAlt } from "react-icons/fa";
+import { MdAddToDrive, MdEmail, MdAccessTimeFilled } from "react-icons/md";
 import Swal from "sweetalert2";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { HiOutlineDocumentArrowDown } from "react-icons/hi2";
+import { RiMessage3Fill } from "react-icons/ri";
+import { GrEdit } from "react-icons/gr";
 
-const AllContact = ({ contacts, setContacts, setPage }) => {
+const AllContact = ({
+  contacts,
+  setContacts,
+  editId,
+  setEditId,
+  role,
+  loading,
+  setPage,
+}) => {
   const [selectedContact, setSelectedContact] = useState(null);
   const [editData, setEditData] = useState({});
   const [search, setSearch] = useState("");
+
+  // handleEdit control
+  useEffect(() => {
+    if (editId) {
+      handleEdit(editId);
+      setEditId(null); // reset
+    }
+  }, [editId]);
 
   const filteredContacts = contacts.filter(
     (contact) =>
@@ -35,14 +58,6 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
     setCurrentPage(1);
   }, [search]);
 
-  // All GET
-  useEffect(() => {
-    fetch("/contacts")
-      .then((res) => res.json())
-      .then((api) => setContacts(api))
-      .catch((err) => console.error(err));
-  }, [setContacts]);
-
   const getChangedFields = () => {
     const changed = [];
 
@@ -57,30 +72,32 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
 
   const handleUpdate = (e) => {
     e.preventDefault();
-
     const changedFields = getChangedFields();
-
     //  No change hole API call bondho
     if (changedFields.length === 0) {
+      document.getElementById("edit_contact").close();
       Swal.fire({
-        position: "top-end",
+        position: "center",
         icon: "info",
         title: "No changes",
-        showConfirmButton: false,
-        timer: 2200,
+        // showConfirmButton: false,
+        // timer: 2200,
         text: "You didn't update anything ",
       });
       return;
     }
 
     // PUT
-    fetch(`/contacts/${selectedContact._id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
+    fetch(
+      `https://contact-server-zs3l.onrender.com/contacts/${selectedContact._id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(editData),
       },
-      body: JSON.stringify(editData),
-    })
+    )
       .then((res) => res.json())
       .then((data) => {
         // Swal.fire({
@@ -97,7 +114,7 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
             : `<span style="color:#06b6d4; font-weight:600">${changedFields.join(", ")}</span> updated successfully`;
 
         Swal.fire({
-          position: "top-end",
+          position: "center",
           icon: "success",
           html: message, // use html for color
         });
@@ -117,13 +134,8 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
         console.error(err);
         Swal.fire("Error", "Update failed", "error");
       });
-  };
 
-  const handleEditChange = (e) => {
-    setEditData({
-      ...editData,
-      [e.target.name]: e.target.value,
-    });
+    setEditId(null);
   };
 
   const handleEdit = (id) => {
@@ -134,7 +146,15 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
     document.getElementById("edit_contact").showModal();
   };
 
-  // Delete
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+
+    setEditData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   const handleDelete = (id) => {
     Swal.fire({
       title: "Are you sure?",
@@ -146,7 +166,7 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
       confirmButtonText: "Yes, delete it!",
     }).then((result) => {
       if (result.isConfirmed) {
-        fetch(`/contacts/${id}`, {
+        fetch(`https://contact-server-zs3l.onrender.com/contacts/${id}`, {
           method: "DELETE",
         })
           .then((res) => res.json())
@@ -182,6 +202,8 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
   // Export PDF
   const handlePDF = () => {
     const doc = new jsPDF("landscape");
+
+    doc.setFontSize(14);
     doc.text("Contact Management System - All Contact Report", 14, 10);
 
     const tableColumn = [
@@ -189,38 +211,98 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
       "Email",
       "Phone",
       "Address",
-      "Create-Time",
-      "Update-Time",
+      "Created",
+      "Updated",
     ];
+
     const tableRows = contacts.map((contact) => [
       contact.name,
       contact.email,
       contact.phone,
       contact.address,
-      new Date(contact.createdAt).toLocaleString(),
-      new Date(contact.updatedAt).toLocaleString(),
+
+      // ✅ সুন্দর date format
+      new Date(contact.createdAt).toLocaleString("en-BD", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+
+      new Date(contact.updatedAt).toLocaleString("en-BD", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     ]);
 
     autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
       startY: 20,
+      styles: {
+        fontSize: 9,
+      },
+      headStyles: {
+        fillColor: [6, 182, 212], // cyan
+      },
     });
+
     doc.save("all_contact.pdf");
   };
 
+  if (loading) {
+    return (
+      <div className="p-6 animate-pulse space-y-6">
+        {/* Search bar */}
+        <div className="h-10 w-full md:w-1/3 bg-white/10 rounded-lg"></div>
+
+        {/* Table Header */}
+        <div className="grid grid-cols-5 gap-4">
+          <div className="h-4 bg-white/10 rounded"></div>
+          <div className="h-4 bg-white/10 rounded"></div>
+          <div className="h-4 bg-white/10 rounded"></div>
+          <div className="h-4 bg-white/10 rounded"></div>
+          <div className="h-4 bg-white/10 rounded"></div>
+        </div>
+
+        {/* Table Rows */}
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="grid grid-cols-5 gap-4 items-center">
+            <div className="h-4 bg-white/10 rounded"></div>
+            <div className="h-4 bg-white/10 rounded"></div>
+            <div className="h-4 bg-white/10 rounded"></div>
+            <div className="h-4 bg-white/10 rounded"></div>
+            <div className="h-8 bg-white/10 rounded-lg"></div>
+          </div>
+        ))}
+
+        {/* Pagination */}
+        <div className="flex justify-center gap-2 mt-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="w-10 h-10 bg-white/10 rounded-lg"></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-7xl mx-auto px-7 py-10">
+    <div className="max-w-7xl mx-auto px-2 py-10">
+      {/* Heading */}
       <div className="relative mb-6">
-        {/* 🔥 Background Glow */}
+        {/* Background Glow */}
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 via-blue-500/10 to-purple-500/20 blur-2xl rounded-xl pointer-events-none"></div>
 
-        {/* 💎 Glass Container */}
+        {/* Glass Container */}
         <div
           className="relative backdrop-blur-xl bg-white/5 border border-white/10 
   rounded-xl px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-2"
         >
-          {/* 🧠 Title */}
+          {/* Title */}
           <h1
             className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 
     bg-clip-text text-transparent"
@@ -228,7 +310,7 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
             All Contacts
           </h1>
 
-          {/* 📊 Total */}
+          {/* Total */}
           <h2 className="text-sm md:text-base text-gray-300">
             Total Contacts:{" "}
             <span className="text-cyan-400 font-semibold">
@@ -238,8 +320,9 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
         </div>
       </div>
 
+      {/* search & PDF */}
       <div className="flex flex-col md:flex-row gap-4 py-4">
-        {/* 🔍 Search Box */}
+        {/*  Search Box */}
         <div className="flex-1 relative">
           {/* Glow */}
           <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 via-blue-500/10 to-purple-500/20 blur-xl rounded-xl"></div>
@@ -249,7 +332,7 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
             className="relative flex items-center gap-3 px-4 py-3 
     backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl"
           >
-            <IoSearch className="text-cyan-400 text-lg" />
+            <IoSearch className="text-cyan-400/40 text-lg" />
 
             <input
               type="text"
@@ -269,136 +352,159 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
           <button
             onClick={handlePDF}
             className="relative px-6 py-3 rounded-xl font-semibold text-white
-      bg-gradient-to-r from-green-500 to-emerald-500
+      bg-gradient-to-r from-green-500/50 to-emerald-500 w-full
       hover:scale-105 active:scale-95 transition shadow-lg flex items-center gap-2 cursor-pointer"
           >
-            <HiOutlineDocumentArrowDown /> Export PDF
+            <span className="flex items-center gap-1">
+              <HiOutlineDocumentArrowDown className="text-xl font-semibold" />
+              Export PDF
+            </span>
           </button>
         </div>
       </div>
 
+      {/* Table */}
       <div className="overflow-x-auto rounded-2xl relative">
-        {/* 🔥 Background Glow */}
+        {/* Background Glow */}
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-purple-500/10 blur-2xl pointer-events-none"></div>
 
-        {/* 💎 Glass Layer */}
-        <div className="relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-4">
-          <table className="table text-white">
-            {/* 🧠 Head */}
-            <thead>
-              <tr className="text-gray-300 text-sm">
-                <th>No.</th>
-                <th>User</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Created</th>
-                <th>Updated</th>
-                <th className="text-center">Action</th>
-              </tr>
-            </thead>
-
-            {/* 📋 Body */}
-            <tbody>
-              {currentContacts.map((c, i) => (
-                <tr
-                  key={c._id}
-                  className="hover:bg-white/5 transition duration-200"
-                >
-                  <th className="text-gray-400">{indexOfFirst + i + 1}</th>
-
-                  {/* 👤 User */}
-                  <td>
-                    <div className="flex items-center gap-3">
-                      <div className="avatar">
-                        <div className="h-12 w-12 rounded-xl border border-cyan-400/40">
-                          <img
-                            src={c.image || "https://i.ibb.co/2kR7b6d/user.png"}
-                            alt="user"
-                            className="object-cover"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <div className="font-semibold text-cyan-300">
-                          {c.name}
-                        </div>
-                        <div className="text-xs text-gray-400">{c.address}</div>
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* 📧 */}
-                  <td className="text-gray-300">{c.email}</td>
-
-                  {/* 📞 */}
-                  <td className="text-gray-300">{c.phone}</td>
-
-                  {/* 🕒 */}
-                  <td className="text-xs text-gray-400">
-                    {new Date(c.createdAt).toLocaleString()}
-                  </td>
-
-                  <td className="text-xs text-gray-400">
-                    {new Date(c.updatedAt).toLocaleString()}
-                  </td>
-
-                  {/* ⚡ Actions */}
-                  <td>
-                    <div className="flex justify-center items-center gap-2">
-                      {/* 👁 View */}
-                      <button
-                        onClick={() => handleViewDetails(c._id)}
-                        className="p-2 rounded-lg bg-cyan-500/10 hover:bg-cyan-500 
-                  hover:text-black transition"
-                        title="View"
-                      >
-                        <IoEye />
-                      </button>
-
-                      {/* ✏️ Edit */}
-                      <button
-                        onClick={() => handleEdit(c._id)}
-                        className="p-2 rounded-lg bg-blue-500/10 hover:bg-blue-500 
-                  hover:text-black transition"
-                        title="Edit"
-                      >
-                        <FaRegEdit />
-                      </button>
-
-                      {/* ➕ Add */}
-                      <button
-                        onClick={() => setPage("Add Contact")}
-                        className="p-2 rounded-lg bg-green-500/10 hover:bg-green-500 
-                  hover:text-black transition"
-                        title="Add"
-                      >
-                        <MdAddToDrive />
-                      </button>
-
-                      {/* 🗑 Delete */}
-                      <button
-                        onClick={() => handleDelete(c._id)}
-                        className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500 
-                  hover:text-black transition"
-                        title="Delete"
-                      >
-                        <IoTrashOutline />
-                      </button>
-                    </div>
-                  </td>
+        {/*  Glass Layer */}
+        {loading ? (
+          // <div className="flex justify-center py-20">
+          //   <span className="loading loading-bars loading-xl"></span>
+          // </div>
+          // ============================
+          <div className="space-y-3">
+            {[...Array(5)].map((_, i) => (
+              <div
+                key={i}
+                className="h-10 bg-white/10 animate-pulse rounded"
+              ></div>
+            ))}
+          </div>
+        ) : (
+          <div className="relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-4">
+            <table className="table text-white">
+              {/*  Head */}
+              <thead>
+                <tr className="text-gray-300 text-sm">
+                  <th>No.</th>
+                  <th>User</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Created</th>
+                  <th>Updated</th>
+                  <th className="text-center">Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+
+              {/*  Body */}
+              <tbody>
+                {currentContacts.map((c, i) => (
+                  <tr
+                    key={c._id}
+                    className="hover:bg-white/5 transition duration-200"
+                  >
+                    <th className="text-gray-400">{indexOfFirst + i + 1}</th>
+
+                    {/* 👤 User */}
+                    <td>
+                      <div className="flex items-center gap-3">
+                        <div className="avatar">
+                          <div className="h-12 w-12 rounded-xl border border-cyan-400/40">
+                            <img
+                              src={
+                                c.image || "https://i.ibb.co/2kR7b6d/user.png"
+                              }
+                              alt="user"
+                              className="object-cover"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-cyan-300">
+                            {c.name}
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            {c.address}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Email */}
+                    <td className="text-gray-300">{c.email}</td>
+
+                    {/* Phone */}
+                    <td className="text-gray-300">{c.phone}</td>
+
+                    {/* Time */}
+                    <td className="text-xs text-gray-400">
+                      {new Date(c.createdAt).toLocaleString()}
+                    </td>
+
+                    <td className="text-xs text-gray-400">
+                      {new Date(c.updatedAt).toLocaleString()}
+                    </td>
+
+                    {/*  Actions */}
+                    <td>
+                      <div className="flex justify-center items-center gap-2">
+                        {/*  View (ALL) */}
+                        <button
+                          onClick={() => handleViewDetails(c._id)}
+                          className="p-2 rounded-lg bg-cyan-500/10 hover:bg-cyan-500 
+      hover:text-black transition cursor-pointer"
+                        >
+                          <IoEye />
+                        </button>
+
+                        {/*  Edit (ONLY ADMIN) */}
+                        {role === "admin" && (
+                          <button
+                            onClick={() => handleEdit(c._id)}
+                            className="p-2 rounded-lg bg-blue-500/10 hover:bg-blue-500 
+        hover:text-black transition cursor-pointer"
+                          >
+                            <FaRegEdit />
+                          </button>
+                        )}
+
+                        {/*  Add (ALL) */}
+                        <button
+                          onClick={() => setPage("Add Contact")}
+                          className="p-2 rounded-lg bg-green-500/10 hover:bg-green-500 
+      hover:text-black transition cursor-pointer"
+                        >
+                          <MdAddToDrive />
+                        </button>
+
+                        {/*  Delete (ONLY ADMIN) */}
+                        {role === "admin" && (
+                          <button
+                            onClick={() => handleDelete(c._id)}
+                            className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500 
+        hover:text-black transition cursor-pointer"
+                          >
+                            <IoTrashOutline />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* pagination */}
-      <div className="flex justify-center mt-8">
-        {/* 🔥 Glow */}
+      <div className="flex justify-center mt-3">
+        {/*  Glow */}
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/5 to-purple-500/10 blur-xl pointer-events-none"></div>
 
-        {/* 💎 Glass Container */}
+        {/*  Glass Container */}
         <div
           className="relative flex items-center gap-2 px-4 py-2 
   backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl"
@@ -410,7 +516,7 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
               <button
                 key={i}
                 onClick={() => setCurrentPage(page)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition cursor-pointer
           ${
             currentPage === page
               ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md"
@@ -427,13 +533,13 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
       {/* Modal View-Details*/}
       <dialog id="view_modal" className="modal modal-bottom sm:modal-middle">
         <div className="modal-box relative overflow-hidden rounded-2xl p-0">
-          {/* 🔥 Background Glow */}
+          {/*  Background Glow */}
           <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 via-blue-500/10 to-purple-500/20 blur-2xl"></div>
 
-          {/* 💎 Glass Layer */}
+          {/*  Glass Layer */}
           <div className="absolute inset-0 backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl"></div>
 
-          {/* ✨ Content */}
+          {/*  Content */}
           <div className="relative z-10 p-6 text-white">
             <h3 className="text-2xl font-bold text-center mb-5">
               Contact <span className="text-cyan-400">Details</span>
@@ -441,7 +547,7 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
 
             {selectedContact && (
               <div className="text-center space-y-3">
-                {/* 🖼️ Profile Image */}
+                {/*  Profile Image */}
                 <div className="flex justify-center">
                   <img
                     src={
@@ -453,46 +559,51 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
                   />
                 </div>
 
-                {/* 👤 Name */}
+                {/*  Name */}
                 <h2 className="text-xl font-semibold text-cyan-300">
                   {selectedContact.name}
                 </h2>
 
-                {/* 📋 Info Grid */}
+                {/*  Info Grid */}
                 <div className="grid grid-cols-1 gap-2 text-sm text-gray-300 mt-3">
-                  <p>
-                    <span className="text-gray-400">📧 Email:</span>{" "}
+                  <p className="flex justify-center items-center gap-1">
+                    <MdEmail className="text-sm" />
+                    <span className="text-gray-400">Email:</span>{" "}
                     {selectedContact.email}
                   </p>
-                  <p>
-                    <span className="text-gray-400">📞 Phone:</span>{" "}
+                  <p className="flex justify-center items-center gap-1">
+                    <FaPhoneAlt className="text-sm" />
+                    <span className="text-gray-400">Phone:</span>{" "}
                     {selectedContact.phone}
                   </p>
-                  <p>
-                    <span className="text-gray-400">📍 Address:</span>{" "}
+                  <p className="flex justify-center items-center gap-1">
+                    <IoLocationSharp className="text-sm" />
+                    <span className="text-gray-400">Address:</span>{" "}
                     {selectedContact.address}
                   </p>
 
                   {selectedContact.message && (
-                    <p>
-                      <span className="text-gray-400">💬 Message:</span>{" "}
+                    <p className="flex justify-center items-center gap-1">
+                      <RiMessage3Fill className="text-sm" />
+                      <span className="text-gray-400"> Message:</span>{" "}
                       {selectedContact.message}
                     </p>
                   )}
 
-                  <p className="text-xs text-gray-500 mt-2">
-                    🕒 {new Date(selectedContact.createdAt).toLocaleString()}
+                  <p className="text-xs text-gray-500 mt-2 flex justify-center items-center gap-1">
+                    <MdAccessTimeFilled className="text-xl" />
+                    {new Date(selectedContact.createdAt).toLocaleString()}
                   </p>
                 </div>
               </div>
             )}
 
-            {/* ❌ Close Button */}
+            {/*  Close Button */}
             <div className="modal-action justify-center mt-6">
               <form method="dialog">
                 <button
                   className="px-6 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 
-          hover:scale-105 active:scale-95 transition text-white font-semibold shadow-md"
+          hover:scale-105 active:scale-95 transition text-white font-semibold shadow-md cursor-pointer"
                 >
                   Close
                 </button>
@@ -579,21 +690,26 @@ const AllContact = ({ contacts, setContacts, setPage }) => {
                   <button
                     type="submit"
                     className="flex-1 py-3 rounded-lg font-semibold text-white 
-              bg-gradient-to-r from-cyan-500 to-blue-500 
-              hover:scale-[1.03] active:scale-[0.97] transition shadow-lg"
+    bg-gradient-to-r from-cyan-500 to-blue-500 
+    hover:scale-[1.03] active:scale-[0.97] transition shadow-lg cursor-pointer"
                   >
-                    Update 🚀
+                    <p className="flex justify-center items-center gap-1">
+                      <GrEdit className="text-xl" />
+                      Update
+                    </p>
                   </button>
 
-                  <form method="dialog" className="flex-1">
-                    <button
-                      type="submit"
-                      className="w-full py-3 rounded-lg font-semibold text-white 
-                bg-white/10 hover:bg-white/20 transition border border-white/10"
-                    >
-                      Cancel
-                    </button>
-                  </form>
+                  {/* ✅ REMOVE form, use button */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      document.getElementById("edit_contact").close()
+                    }
+                    className="flex-1 py-3 rounded-lg font-semibold text-white 
+    bg-white/10 hover:bg-white/20 transition border border-white/10 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
                 </div>
               </form>
             )}

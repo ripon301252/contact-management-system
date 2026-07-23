@@ -3,7 +3,7 @@ import { FaFacebook, FaGithub, FaLinkedin } from "react-icons/fa";
 
 const Footer = ({ setPage }) => {
   return (
-    <footer className="relative mt-16">
+    <footer className="relative ">
 
       {/* 🔥 Glow */}
       <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/5 to-purple-500/10 blur-2xl"></div>

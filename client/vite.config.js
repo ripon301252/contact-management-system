@@ -9,7 +9,7 @@ export default defineConfig({
     open: true,
     proxy: {
       '/contacts': {
-        target: 'http://localhost:3000',
+        target: 'https://contact-server-zs3l.onrender.com',
         changeOrigin: true,
         secure: false,
       }

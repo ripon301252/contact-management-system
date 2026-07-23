@@ -55,6 +55,10 @@ const contactSchema = new mongoose.Schema(
       type: String,
       lowercase: true,
     },
+    role: {
+      type: String,
+      default: "member",
+    },
   },
   { timestamps: true },
 );
@@ -67,40 +71,10 @@ app.get("/contacts", async (req, res) => {
   try {
     const contacts = await Contact.find();
     res.send(contacts);
-  } 
-  catch (err) {
+  } catch (err) {
     res.status(500).send({ message: err.message });
   }
 });
-
-// app.get("/contacts", async (req, res) => {
-//   try {
-//     const search = req.query.search || "";
-//     const page = parseInt(req.query.page) || 1;
-//     const limit = parseInt(req.query.limit) || 5;
-
-//     const query = {
-//       name: { $regex: search, $options: "i" }, // 🔍 search
-//     };
-
-//     const total = await Contact.countDocuments(query);
-
-//     const contacts = await Contact.find(query)
-//       .skip((page - 1) * limit) // ⏭️ pagination
-//       .limit(limit)
-//       .sort({ createdAt: -1 });
-
-//     res.send({
-//       contacts,
-//       total,
-//       page,
-//       totalPages: Math.ceil(total / limit),
-//     });
-//   } catch (err) {
-//     res.status(500).send({ message: err.message });
-//   }
-// });
-
 
 
 // single GET
@@ -129,6 +103,7 @@ app.post("/contacts", async (req, res) => {
     res.status(500).send({ message: err.message });
   }
 });
+
 
 // Update
 app.put("/contacts/:id", async (req, res) => {
